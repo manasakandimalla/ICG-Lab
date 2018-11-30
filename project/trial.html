@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<script>
+  function get_position(num){
+    var coord = new Float32Array(2);
+    var position = new Float32Array(10);
+
+    position = [ 8.0 , 6.0 , 4.0 , 2.5 , 1.0 , -1.0 , -2.5 , -4.0 , -6.0 , -8.0 ];
+
+    y = Math.floor((num-1)/10);
+    x = (num-1)%10;
+
+    coord[1] = position[y];
+
+    if(y%2 == 0)
+      coord[0] = position[x];
+    else coord[0] = position[9-x];
+    
+    //console.log("num : %d , x : %d , y : %d , position : (%f , %f)",num,x,y,coord[0],coord[1]);
+
+    return coord;
+  }
+
+
+  function game() {
+    var bonus = new Array(101).fill(0);
+
+    bonus[2] = 38;
+    bonus[4] = 14;
+    bonus[9] = 31;
+    bonus[33] = 85;
+    bonus[51] = 11;
+    bonus[52] = 88;
+    bonus[56] = 15;
+    bonus[62] = 57;
+    bonus[80] = 99;
+    bonus[92] = 53;
+    bonus[98] = 8;
+
+    var finish = 0,x1=9,y1=9,x2=9,y2=8,c1,d1,c2,d2;
+    var player1=0,player2=0;
+    var dice,turn=1;
+    while(!finish)
+    {
+      if(turn == 1)
+      {
+        dice = Math.floor(Math.random()*6)+1;
+        if(player1+dice > 100)
+          dice = 0;
+        player1 = player1+dice;
+        if(bonus[player1]!=0)
+        {
+          player1 = bonus[player1];
+        }
+        c1 = x1;d1= y1;
+        //get co-ordinates
+        [x1,y1] = get_position(player1);
+        y1 = y1+1;
+        console.log("player1(%d) gets %d and moves from (%f,%f) to (%f,%f)",player1,dice,c1,d1,x1,y1);
+        //console.log("turn : %d , dice : %d , player1 : %d , position : (%f,%f)",turn,dice,player1,x1,y1);
+        if(player1 == 100)
+        {
+          finish = 1;
+          break;
+        }
+        if(dice == 6 || dice == 4)
+          turn =1;
+        else turn = 2;
+      }
+        
+      if(turn == 2)
+      {
+        dice = Math.floor(Math.random()*6)+1;
+        if(player2+dice > 100)
+          dice = 0;
+        player2 = player2+dice;
+        if(bonus[player2]!=0)
+        {
+          player2 = bonus[player2];
+        }
+        c2 = x2;d2= y2;
+        //get co-ordinates
+        [x2,y2] = get_position(player2);
+        console.log("player2(%d) gets %d and moves from (%f,%f) to (%f,%f)",player2,dice,c2,d2,x2,y2);
+        //console.log("turn : %d , dice : %d , player2 : %d , position : (%f,%f)",turn,dice,player2,x2,y2);
+        if(player2 == 100)
+        {
+          finish = 1;
+          break;
+        }
+        if(dice == 6 || dice == 4)
+          turn =2;
+        else turn = 1;
+      }
+    }
+    //console.log("game finish won by %d",turn);
+    
+  }
+
+</script>
+
+</head>
+
+<meta charset=utf-8 />
+<title>Check</title>
+
+</head>
+
+<body onload="game();">
+
+</body>
+
+</html>
+
+

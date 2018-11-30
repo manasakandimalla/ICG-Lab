@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<script>
+	function draw() {
+  var canvas = document.getElementById('canvas');
+  if (canvas.getContext) {
+    var context = canvas.getContext('2d');
+
+    context.fillStyle = "rgba(123,134,112,0.5)"
+    context.fillRect(170,240,300,120);
+    context.fillStyle = "rgba(23,243,213,0.4)"
+    context.fillRect(150,100,90,190);
+    context.fillStyle = "rgba(312,31,155,0.5)"
+    context.fillRect(65,260,180,120);
+  }
+}
+
+
+</script>
+
+</head>
+
+<meta charset=utf-8 />
+<title>Drawing 3 concentric rectangles</title>
+
+</head>
+
+<body onload="draw();">
+
+<canvas id="canvas" width="500" height="500" style = "border:1px solid #d3d3d3;"></canvas>
+
+</body>
+
+</html>
+
+

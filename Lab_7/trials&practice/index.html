@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>saree design</title>
+        
+        <script src='glMatrix-0.9.5.min.js'></script>
+        <script id='shader-fs' type='x-shader/x-fragment'>
+            precision mediump float;
+
+            varying vec2 pos;
+            uniform float uT;
+
+            const int MAX_ITER = 20;
+            vec2 mandelbrot( float ca, float cb ) {
+                float za = 0.0, zb = 0.0, z, ta, tb;
+                float n = 2.0;
+
+                for ( int i = 0; i < MAX_ITER; ++i ) {
+                    ta = za * za - zb * zb + ca;
+                    tb = 2.0 * za * zb + cb;
+                    za = ta;
+                    zb = tb;
+                    if ( abs( za ) > n || abs( zb ) > n ) {
+                        return vec2( i, sqrt( za * za + zb * zb ) );
+                    }
+                }
+
+                return vec2( 0.0, 0.0 );
+            }
+
+            void main( void ) {
+                vec2 iter = mandelbrot( 2.0 * pos.x / uT + 0.001643721971153, 2.0 * pos.y / uT + 0.822467633298876 );
+                float v = ( iter.x + 1.0 - log2( log( iter.y ) ) ) / float( MAX_ITER );
+                gl_FragColor = vec4( 1.0,1.0-v,1.0-v , 1.0 );
+            }
+        </script>
+        <script id='shader-vs' type='x-shader/x-vertex'>
+            attribute vec2 aVertexPosition;
+
+            uniform float uR;
+
+            varying vec2 pos;
+
+            void main( void ) {
+                pos.x = aVertexPosition.x*2.0;
+                pos.y = aVertexPosition.y*2.0;
+                gl_Position = vec4( aVertexPosition.y / uR, -aVertexPosition.x, 0.0, 1.0 );
+            }
+        </script>
+        <script type="text/javascript">
+            var gl;
+
+            function initGL( canvas ) {
+                try {
+                    gl = canvas.getContext( 'experimental-webgl' );
+                    gl.viewportWidth = canvas.width;
+                    gl.viewportHeight = canvas.height;
+                }
+                catch ( e ) {
+                }
+                if ( !gl ) {
+                    alert( 'Could not initialise WebGL, sorry :-(' );
+                }
+            }
+
+            function getShader( gl, id ) {
+                var shaderScript = document.getElementById( id );
+                if ( !shaderScript ) {
+                    return null;
+                }
+                var str = "";
+                var k = shaderScript.firstChild;
+                while ( k ) {
+                    if ( k.nodeType == 3 ) {
+                        str += k.textContent;
+                    }
+                    k = k.nextSibling;
+                }
+                var shader;
+                if ( shaderScript.type == 'x-shader/x-fragment' ) {
+                    shader = gl.createShader( gl.FRAGMENT_SHADER );
+                }
+                else if ( shaderScript.type == 'x-shader/x-vertex' ) {
+                    shader = gl.createShader( gl.VERTEX_SHADER );
+                }
+                else {
+                    return null;
+                }
+                gl.shaderSource( shader, str );
+                gl.compileShader( shader );
+                if ( !gl.getShaderParameter( shader, gl.COMPILE_STATUS ) ) {
+                    alert( gl.getShaderInfoLog( shader ) );
+                    return null;
+                }
+                return shader;
+            }
+
+            var shaderProgram;
+
+            function initShaders() {
+                var fragmentShader = getShader( gl, 'shader-fs' );
+                var vertexShader = getShader( gl, 'shader-vs' );
+
+                shaderProgram = gl.createProgram();
+                gl.attachShader( shaderProgram, vertexShader );
+                gl.attachShader( shaderProgram, fragmentShader );
+                gl.linkProgram( shaderProgram);
+
+                if ( !gl.getProgramParameter( shaderProgram, gl.LINK_STATUS ) ) {
+                    alert( 'Could not initialise shaders' );
+                }
+
+                gl.useProgram( shaderProgram );
+
+                shaderProgram.vertexPositionAttribute = gl.getAttribLocation( shaderProgram, 'aVertexPosition' );
+                shaderProgram.uT = gl.getUniformLocation( shaderProgram, 'uT' );
+                shaderProgram.uR = gl.getUniformLocation( shaderProgram, 'uR' );
+
+                gl.enableVertexAttribArray( shaderProgram.vertexPositionAttribute );
+            }
+
+            var squareVertexPositionBuffer;
+
+            function initBuffers() {
+                squareVertexPositionBuffer = gl.createBuffer();
+                gl.bindBuffer( gl.ARRAY_BUFFER, squareVertexPositionBuffer );
+                vertices = [
+                     1.0,  1.0,
+                    -1.0,  1.0,
+                     1.0, -1.0,
+                    -1.0, -1.0
+                ];
+                gl.bufferData( gl.ARRAY_BUFFER, new Float32Array( vertices ), gl.STATIC_DRAW );
+                squareVertexPositionBuffer.itemSize = 2;
+                squareVertexPositionBuffer.numItems = 4;
+            }
+            
+            function drawScene() {
+                gl.viewport( 0, 0, gl.viewportWidth, gl.viewportHeight );
+             
+                gl.uniform1f( shaderProgram.uT, 1 );
+                gl.uniform1f( shaderProgram.uR, r );
+
+                gl.bindBuffer( gl.ARRAY_BUFFER, squareVertexPositionBuffer );
+                gl.vertexAttribPointer( shaderProgram.vertexPositionAttribute, squareVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0 );
+                gl.drawArrays( gl.TRIANGLE_STRIP, 0, squareVertexPositionBuffer.numItems );
+
+            }
+            var canvas;
+            function webGLStart() {
+                canvas = document.getElementById( 'canvas' );
+
+                initGL(canvas);
+                initShaders();
+                initBuffers();
+
+                drawScene();
+            }
+            var r = 1;
+        </script>
+    </head>
+    <body onload="webGLStart();">
+        <canvas id="canvas" width="350" height="350"></canvas>
+    </body>
+</html>
